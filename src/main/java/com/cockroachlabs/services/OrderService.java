@@ -18,6 +18,24 @@ public class OrderService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @GET
+    @Path("/force-retry")
+    @Produces("application/json")
+    public String retriedTransaction() {
+        Session session = SessionUtil.getSession();
+        Transaction txn = session.beginTransaction();
+        session.createNativeQuery("SAVEPOINT cockroach_restart").executeUpdate();
+        session.createNativeQuery("SELECT 1").getSingleResult();
+        try {
+            session.createNativeQuery("SELECT crdb_internal.force_retry('1s')").getSingleResult();
+        } catch (Exception e) {
+            session.createNativeQuery("ROLLBACK TO SAVEPOINT COCKROACH_RESTART").executeUpdate();
+            session.createNativeQuery("SELECT 2").getSingleResult();
+        }
+        txn.commit();
+        return "\"done\"";
+    }
+
+    @GET
     @Produces("application/json")
     public String getOrders() {
         try (Session session = SessionUtil.getSession()) {

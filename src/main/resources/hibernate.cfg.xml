@@ -28,6 +28,9 @@
         <!-- org.hibernate.HibernateException: No CurrentSessionContext configured! -->
         <property name="hibernate.current_session_context_class">thread</property>
 
+        <!-- Replace the existing TransactionCoordinator with the CockroachDB-compatible one -->
+        <property name="hibernate.transaction.coordinator_class">com.cockroachlabs.CockroachDBTransactionCoordinatorBuilder</property>
+
     </session-factory>
 
 </hibernate-configuration>
